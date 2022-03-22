@@ -87,6 +87,8 @@ for d in range(1, D + 1):
 cursor = tqdm(total=D * n_splits)
 val_errors = defaultdict(list)
 test_errors = defaultdict(list)
+n_vecs = defaultdict(list)
+n_vecs_margin = defaultdict(list)
 for d in range(1, D + 1):
     param = svm_parameter()
     param.C = best_C
@@ -99,6 +101,10 @@ for d in range(1, D + 1):
         y = np.concatenate(split_Y[:idx] + split_Y[idx + 1:], axis=0)
         prob = svm_problem(y, x)
         svm = svm_train(prob, param)
+        coeffs = svm.get_sv_coef()
+        max_coeff = max(abs(t[0]) for t in coeffs)
+        n_vecs[d].append(len(coeffs))
+        n_vecs_margin[d].append(len([c for c in coeffs if abs(c[0]) == max_coeff]))
         p_label, (acc, mse, _), p_val = svm_predict(dev_Y, dev_X, svm)
         val_errors[d].append(mse)
         _, (_, mse, _), _ = svm_predict(test_Y, test_X, svm)
@@ -118,6 +124,20 @@ plt.legend()
 plt.title(Rf"Cross-validation and test MSE by $d$ ($C^* = {best_C}$)")
 plt.xlabel(R"$d$")
 plt.ylabel("MSE")
+plt.tight_layout()
+plt.show()
+
+plt.figure()
+n_vecs_mean = [np.mean(n_vecs[d]) for d in range(1, D + 1)]
+n_vecs_margin_mean = [np.mean(n_vecs_margin[d]) for d in range(1, D + 1)]
+n_vecs_std = [np.std(n_vecs[d]) for d in range(1, D + 1)]
+n_vecs_margin_std = [np.std(n_vecs_margin[d]) for d in range(1, D + 1)]
+plt.errorbar(ds, n_vecs_mean, yerr=n_vecs_std, label="total", marker="o")
+plt.errorbar(ds, n_vecs_margin_mean, yerr=n_vecs_margin_std, label="marginal", marker="o")
+plt.title("Number of support vectors and marginal support vectors")
+plt.xlabel(R"$d$")
+plt.ylabel("# support vectors")
+plt.legend()
 plt.tight_layout()
 plt.show()
 
