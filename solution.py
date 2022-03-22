@@ -26,6 +26,7 @@ train_X, train_Y = shuffle(train_X, train_Y)
 test_X = X[3133:]
 test_Y = Y[3133:]
 
+# Part C.2
 # Compute the scale parameters on the train set and scale all the data accordingly.
 # See: https://stackoverflow.com/questions/10055396/scaling-the-testing-data-for-libsvm-matlab-implementation
 train_X = csr_matrix(train_X)
